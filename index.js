@@ -5,55 +5,55 @@ const express = require('express')
 
 const app = express()
 const PORT = process.env.PORT || 3000
-let pairCodeGlobal = "Se genereaza..."
-let phoneGlobal = ""
+const MY_NUMBER = "40770811929" // NUMARUL TAU PUS FIX
+
+let pairCodeGlobal = "Se genereaza... asteapta 10 secunde si da refresh..."
+let phoneGlobal = MY_NUMBER
 
 app.get('/', (req,res)=>{
   res.send(`<h1>🤖 BOT FUN ROMANIA</h1>
-  <p>Numar: ${phoneGlobal || 'Nu e setat'}</p>
-  <h2>Pair Code-ul tau: <b style="font-size:40px">${pairCodeGlobal}</b></h2>
-  <p>Intra pe Whatsapp > Dispozitive conectate > Conecteaza cu numar de telefon > Baga codul</p>
-  <p>Dupa conectare scrie.help in grup</p>
-  <p><a href="/pair?number=40712345678">Genereaza cod nou: /pair?number=NUMARUL_TAU_CU_PREFIX</a></p>
+  <p>Numar setat: <b>${phoneGlobal}</b></p>
+  <h2 style="background: #000; color: #0f0; padding: 20px;">Pair Code: ${pairCodeGlobal}</h2>
+  <p>1. Deschide Whatsapp pe telefonul cu numarul ${phoneGlobal}</p>
+  <p>2. Setari > Dispozitive conectate > Conecteaza un dispozitiv > Conecteaza cu numar de telefon</p>
+  <p>3. Baga codul de mai sus</p>
+  <p><small>Daca expira, da refresh la pagina. Codul se schimba la 1 minut.</small></p>
   `)
 })
 
-app.get('/pair', async (req,res)=>{
-  const num = req.query.number
-  if(!num) return res.send('40770811929')
-  phoneGlobal = num
-  try {
-    const code = await global.requestPair(num)
-    pairCodeGlobal = code
-    res.send(`<h1>Codul tau pentru ${num} este: ${code}</h1><a href="/">Inapoi</a>`)
-  } catch(e){ res.send('Eroare: '+e.message) }
-})
-
-app.listen(PORT, ()=> console.log('WEB SERVER PE PORT '+PORT))
+app.listen(PORT, ()=> console.log('WEB PE PORT '+PORT))
 
 let ticTacToe = {}
 
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState('auth')
-  const sock = makeWASocket({ logger: P({ level: 'silent' }), auth: state, printQRInTerminal: false, browser: ["Bot Fun", "Chrome", "1.0"] })
+  const sock = makeWASocket({
+    logger: P({ level: 'silent' }),
+    auth: state,
+    printQRInTerminal: false,
+    browser: ["Ubuntu", "Chrome", "20.0.04"]
+  })
   sock.ev.on('creds.update', saveCreds)
 
-  global.requestPair = async (number) => {
-    const clean = number.replace(/[^0-9]/g,'')
-    const code = await sock.requestPairingCode(clean)
-    pairCodeGlobal = code
-    console.log(`PAIR CODE PENTRU ${clean}: ${code}`)
-    return code
+  // GENEREAZA COD AUTOMAT PENTRU NUMARUL TAU
+  if(!state.creds.registered){
+    setTimeout(async ()=>{
+      try {
+        phoneGlobal = MY_NUMBER
+        const code = await sock.requestPairingCode(MY_NUMBER)
+        pairCodeGlobal = code
+        console.log(`\n\n=================================\nPAIR CODE PENTRU ${MY_NUMBER}: ${code}\n=================================\n\n`)
+      } catch(e){ console.log('Eroare pair:', e.message) }
+    }, 5000)
   }
 
   sock.ev.on('connection.update', (u)=>{
-    if(u.connection==='open') console.log('✅ BOT CONECTAT CU SUCCES!')
+    if(u.connection==='open') { console.log('✅ BOT CONECTAT!'); pairCodeGlobal = "✅ CONECTAT! Poti inchide pagina" }
     if(u.connection==='close') {
       if(u.lastDisconnect?.error?.output?.statusCode!== DisconnectReason.loggedOut) startBot()
     }
   })
 
-  // --- AICI INCEPE COMENZILE ---
   sock.ev.on('messages.upsert', async ({ messages }) => {
     const m = messages[0]
     if (!m.message || m.key.fromMe) return
