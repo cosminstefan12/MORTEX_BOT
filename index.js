@@ -20,7 +20,7 @@ app.get('/', (req,res)=>{
 
 app.get('/pair', async (req,res)=>{
   const num = req.query.number
-  if(!num) return res.send('Pune?number=407xxxxxxxxx')
+  if(!num) return res.send('40770811929')
   phoneGlobal = num
   try {
     const code = await global.requestPair(num)
