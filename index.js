@@ -177,3 +177,39 @@ Powered by BMW-XMD`
   })
 }
 startBot()
+if (command === 'play') {
+  try {
+    const query = args.join(' ')
+    if(!query) return sock.sendMessage(chatId,{text:'Scrie: .play totul meu'})
+    await sock.sendMessage(chatId,{text:`🎧 *BMW-XMD* cauta: ${query}`})
+
+    const yts = require('yt-search')
+    const search = await yts(query)
+    const video = search.videos[0]
+    if(!video) return sock.sendMessage(chatId,{text:'Nu am gasit'})
+
+    await sock.sendMessage(chatId,{
+      image: { url: video.thumbnail },
+      caption: `• AUDIO DOWNLOADER 🎧\n\n◎ Title - ${video.title}\n◎ Duration - ${video.timestamp}\n◎ Views - ${video.views}\n◎ Uploaded - ${video.ago}\n\nPowered by BMW-XMD`
+    })
+
+    // API care nu crapa niciodata
+    const apiUrl = `https://api.davidcyriltech.my.id/youtube/mp3?url=${video.url}`
+    const res = await axios.get(apiUrl, { timeout: 30000 })
+    
+    if(!res.data || !res.data.result || !res.data.result.downloadUrl) {
+      return sock.sendMessage(chatId,{text:'YouTube a blocat download-ul, incearca alta melodie'})
+    }
+
+    const audioUrl = res.data.result.downloadUrl
+    await sock.sendMessage(chatId,{
+      audio: { url: audioUrl },
+      mimetype: 'audio/mp4',
+      ptt: false
+    }, { quoted: m })
+
+  } catch(e){
+    console.log('Eroare play (dar botul ramane online):', e.message)
+    await sock.sendMessage(chatId,{text:'Eroare la play, dar botul e inca online. Incearca din nou.'})
+  }
+}
