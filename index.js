@@ -9,8 +9,11 @@ const PORT = process.env.PORT || 3000
 const MY_NUMBER = "40770811929"
 let pairCodeGlobal = "Se genereaza..."
 
-app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 FINAL 100%</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
-app.listen(PORT, ()=> console.log('WEB PE '+PORT))
+// COBALTUL TAU PERSONAL - AICI E CHEIA
+const COBALT_API = process.env.COBALT_API_URL || process.env.COBALT_URL || "https://cobalt-me.onrender.com"
+
+app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 FINAL 100%</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1><p>Cobalt: ${COBALT_API}</p>`))
+app.listen(PORT, ()=> console.log('WEB PE '+PORT + ' COBALT: ' + COBALT_API))
 
 let ticTacToe = {}
 let groupSettings = {}
@@ -52,7 +55,7 @@ async function startBot() {
       if(command==='antilink'){ if(!(await isAdmin(chatId,senderId))) return; if(!groupSettings[chatId]) groupSettings[chatId]={antilink:false}; if(q==='on'){ groupSettings[chatId].antilink=true; return sock.sendMessage(chatId,{text:'✅ Antilink ON - dau afara link-uri'}) } if(q==='off'){ groupSettings[chatId].antilink=false; return sock.sendMessage(chatId,{text:'❌ Antilink OFF'}) } return sock.sendMessage(chatId,{text:`Antilink: ${groupSettings[chatId].antilink?'ON':'OFF'}`}) }
       if(command==='leave'){ if(!(await isAdmin(chatId,senderId))) return; await sock.sendMessage(chatId,{text:'👋 Pa!'}); return sock.groupLeave(chatId) }
 
-      // --- MUZICA NEBANATA PE RENDER - INVIDIOUS + COBALT ---
+      // --- MUZICA CU COBALT-UL TAU PERSONAL ---
       if(command==='play'||command==='song'||command==='muzica'){
         if(!q) return sock.sendMessage(chatId,{text:'Scrie: .play Tzanca Uraganu - Trai v-ar familia'})
         try{
@@ -60,29 +63,47 @@ async function startBot() {
           const search = await yts(q); const video = search.videos[0]
           if(!video) return sock.sendMessage(chatId,{text:'Nu am gasit melodia'})
 
-          await sock.sendMessage(chatId,{image:{url:video.thumbnail},caption:`🎧 *${video.title}*\n⏱ ${video.timestamp}\n\n⏳ Descarc audio...`})
+          await sock.sendMessage(chatId,{image:{url:video.thumbnail},caption:`🎧 *${video.title}*\n⏱ ${video.timestamp}\n\n⏳ Descarc audio via cobalt-ul meu...`})
 
           let audioUrl = null
           const videoId = video.videoId
 
-          // 1 - INVIDIOUS (NU E BANAT PE RENDER)
-          try{
-            const invs = [
-              `https://inv.nadeko.net/api/v1/videos/${videoId}`,
-              `https://vid.puffyan.us/api/v1/videos/${videoId}`
-            ]
-            for(const u of invs){
-              if(audioUrl) break
-              try{
-                const r = await axios.get(u, AXIOS)
-                const fmts = r.data?.adaptiveFormats || []
-                const aud = fmts.filter(f => f.type && f.type.includes('audio')).sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-                if(aud[0]?.url) audioUrl = aud[0].url
-              }catch(e){}
-            }
-          }catch(e){}
+          // 1 - COBALT-UL TAU PERSONAL (PRIORITATE 1)
+          if(!audioUrl){
+            try{
+              console.log('Incerc cobalt personal:', COBALT_API)
+              const r = await axios.post(COBALT_API, { 
+                url: video.url, 
+                downloadMode: "audio",
+                audioFormat: "mp3",
+                filenameStyle: "basic"
+              }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 60000 })
+              if(r.data?.url) audioUrl = r.data.url
+              if(r.data?.status === 'redirect' && r.data?.url) audioUrl = r.data.url
+              if(r.data?.status === 'tunnel' && r.data?.url) audioUrl = r.data.url
+            }catch(e){ console.log('Cobalt personal fail:', e.message) }
+          }
 
-          // 2 - COBALT co.wuk.sh (NU E BANAT)
+          // 2 - INVIDIOUS
+          if(!audioUrl){
+            try{
+              const invs = [
+                `https://inv.nadeko.net/api/v1/videos/${videoId}`,
+                `https://vid.puffyan.us/api/v1/videos/${videoId}`
+              ]
+              for(const u of invs){
+                if(audioUrl) break
+                try{
+                  const r = await axios.get(u, AXIOS)
+                  const fmts = r.data?.adaptiveFormats || []
+                  const aud = fmts.filter(f => f.type && f.type.includes('audio')).sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+                  if(aud[0]?.url) audioUrl = aud[0].url
+                }catch(e){}
+              }
+            }catch(e){}
+          }
+
+          // 3 - COBALT co.wuk.sh BACKUP
           if(!audioUrl){
             try{
               const r = await axios.post('https://co.wuk.sh/api/json', { url: video.url, aFormat: "mp3", isAudioOnly: true }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 20000 })
@@ -90,16 +111,8 @@ async function startBot() {
             }catch(e){}
           }
 
-          // 3 - DAVID API BACKUP
           if(!audioUrl){
-            try{
-              const r = await axios.get(`https://api.davidcyriltech.my.id/youtube/mp3?url=${encodeURIComponent(video.url)}`, AXIOS)
-              audioUrl = r.data?.result?.downloadUrl
-            }catch(e){}
-          }
-
-          if(!audioUrl){
-            return sock.sendMessage(chatId,{text:`❌ Nu am putut lua audio-ul momentan.\nLink: ${video.url}`})
+            return sock.sendMessage(chatId,{text:`❌ Nu am putut lua audio-ul momentan.\nCobalt: ${COBALT_API}\nLink: ${video.url}`})
           }
 
           await sock.sendMessage(chatId,{
@@ -109,7 +122,7 @@ async function startBot() {
             ptt: false
           }, {quoted:m})
 
-          return sock.sendMessage(chatId,{text:`✅ Gata - ${video.title}`})
+          return sock.sendMessage(chatId,{text:`✅ Gata - ${video.title}\nVia: ${COBALT_API}`})
 
         }catch(err){ return sock.sendMessage(chatId,{text:'Eroare play: '+err.message}) }
       }
@@ -137,7 +150,6 @@ async function startBot() {
       if(command==='ppt'){ const o=['piatra','hartie','foarfeca']; const bot=o[Math.floor(Math.random()*3)]; const user=args[0]?.toLowerCase(); if(!o.includes(user)) return sock.sendMessage(chatId,{text:'.ppt piatra/hartie/foarfeca'}); let rez=user===bot?'Egal':(user==='piatra'&&bot==='foarfeca'||user==='hartie'&&bot==='piatra'||user==='foarfeca'&&bot==='hartie')?'Ai castigat':'Ai pierdut'; return sock.sendMessage(chatId,{text:`Tu:${user} Bot:${bot} - ${rez}`}) }
       if(command==='xox'){ if(!ticTacToe[chatId]||q==='reset') ticTacToe[chatId]=['1','2','3','4','5','6','7','8','9']; const pos=parseInt(args[0])-1; if(!isNaN(pos)&&pos>=0&&pos<=8){ if(ticTacToe[chatId][pos]!=='❌'&&ticTacToe[chatId][pos]!=='⭕'){ ticTacToe[chatId][pos]='❌'; let e=ticTacToe[chatId].map((v,i)=>v!=='❌'&&v!=='⭕'?i:null).filter(v=>v!==null); if(e.length>0) ticTacToe[chatId][e[Math.floor(Math.random()*e.length)]]='⭕' } } let b=ticTacToe[chatId]; return sock.sendMessage(chatId,{text:`${b[0]}|${b[1]}|${b[2]}\n${b[3]}|${b[4]}|${b[5]}\n${b[6]}|${b[7]}|${b[8]}\n.xox 1-9`}) }
 
-      // --- MENIUL TAU ORIGINAL EXACT ---
       if(command==='menu'||command==='meniu'||command==='help'){
         return sock.sendMessage(chatId,{text:
 `🤖 *BMW-XMD V5 MENU*
@@ -156,8 +168,10 @@ async function startBot() {
 - .antilink on/off - anti link
 - .leave - bot iese
 
-🎧 DOWNLOAD
-- .play / .video / .tiktok / .fb / .ig
+🎧 DOWNLOAD - CU COBALT-UL TAU
+- .play nume melodie
+- .video nume
+- .tiktok link
 
 💥 ANIME ANIMAT - GIF
 - .slap @user / .kiss @user
@@ -174,6 +188,7 @@ async function startBot() {
 😂 FUN
 - .ppt / .xox / .s / .ai
 
+Cobalt: ${COBALT_API}
 Powered by BMW-XMD V5`
         })
       }
