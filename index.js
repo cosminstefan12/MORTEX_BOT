@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000
 const MY_NUMBER = "40770811929"
 let pairCodeGlobal = "Se genereaza..."
 
-app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 - FIX FABDL 404</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
+app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 FINAL FIX YT1S</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
 app.listen(PORT, ()=> console.log('WEB PE '+PORT))
 
 let ticTacToe = {}
@@ -51,7 +51,7 @@ async function startBot() {
       if(command==='antilink'){ if(!(await isAdmin(chatId,senderId))) return; if(!groupSettings[chatId]) groupSettings[chatId]={antilink:false}; if(q==='on'){ groupSettings[chatId].antilink=true; return sock.sendMessage(chatId,{text:'✅ Antilink ON'}) } if(q==='off'){ groupSettings[chatId].antilink=false; return sock.sendMessage(chatId,{text:'❌ Antilink OFF'}) } return sock.sendMessage(chatId,{text:`Antilink: ${groupSettings[chatId].antilink?'ON':'OFF'}`}) }
       if(command==='leave'){ if(!(await isAdmin(chatId,senderId))) return; await sock.sendMessage(chatId,{text:'👋 Pa!'}); return sock.groupLeave(chatId) }
 
-      // --- PLAY FIX - FARA FABDL - SITE-URI CU MUZICA CARE MERG AZI ---
+      // --- PLAY FINAL FIX - YT1S.COM - SITE CU MUZICA CARE MERGE PE RENDER ---
       if(command==='play'||command==='song'||command==='muzica'){
         if(!q) return sock.sendMessage(chatId,{text:'Scrie: .play nume melodie'})
         try{
@@ -62,45 +62,80 @@ async function startBot() {
           await sock.sendMessage(chatId,{image:{url:video.thumbnail},caption:`🎧 *${video.title}*\n⏱ ${video.timestamp}\n\n⏳ Descarc audio...`})
 
           let audioUrl = null
-          const urlEnc = encodeURIComponent(video.url)
+          const videoUrl = video.url
 
-          // SITE 1 - SIPUTZX - SITE CU MUZICA (merge 100% pe Render)
+          // SITE 1 - YT1S.COM - ASTA MERGE ACUM, NU E API MIC
           try{
-            const r = await axios.get(`https://api.siputzx.my.id/api/d/ytmp3?url=${urlEnc}`, AXIOS)
-            audioUrl = r.data?.data?.dl || r.data?.result?.dl || r.data?.dl
-            console.log('SIPUTZX:', audioUrl ? 'OK' : 'FAIL')
-          }catch(e){ console.log('SIPUTZX fail', e.message) }
+            const form1 = new URLSearchParams()
+            form1.append('q', videoUrl)
+            form1.append('vt', 'mp3')
 
-          // SITE 2 - COBALT CO.WUK.SH - SITE COBALT
+            const s1 = await axios.post('https://yt1s.com/api/ajaxSearch', form1.toString(), {
+              headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                'Origin': 'https://yt1s.com',
+                'Referer': 'https://yt1s.com/',
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              timeout: 25000
+            })
+
+            let k = null
+            if(s1.data?.links?.mp3){
+              const mp3Links = s1.data.links.mp3
+              k = mp3Links['mp3128']?.k || mp3Links['128']?.k || mp3Links['mp3']?.k || Object.values(mp3Links)[0]?.k
+            }
+
+            if(s1.data?.vid && k){
+              const form2 = new URLSearchParams()
+              form2.append('vid', s1.data.vid)
+              form2.append('k', k)
+
+              const s2 = await axios.post('https://yt1s.com/api/ajaxConvert', form2.toString(), {
+                headers: { 
+                  'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+                  'Origin': 'https://yt1s.com',
+                  'Referer': 'https://yt1s.com/',
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                timeout: 25000
+              })
+              
+              if(s2.data?.dlink){
+                audioUrl = s2.data.dlink
+              }
+            }
+            console.log('YT1S:', audioUrl ? 'OK' : 'FAIL')
+          }catch(e){ console.log('YT1S fail', e.message) }
+
+          // SITE 2 - COBALT CO.WUK.SH
           if(!audioUrl){
             try{
               const r = await axios.post('https://co.wuk.sh/api/json', {
-                url: video.url, aFormat: "mp3", isAudioOnly: true
+                url: videoUrl, aFormat: "mp3", isAudioOnly: true
               }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 20000 })
               if(r.data?.url) audioUrl = r.data.url
               console.log('COBALT:', audioUrl ? 'OK' : 'FAIL')
             }catch(e){}
           }
 
-          // SITE 3 - DAVID API
+          // SITE 3 - PIPED API
           if(!audioUrl){
             try{
-              const r = await axios.get(`https://api.davidcyriltech.my.id/download/ytmp3?url=${urlEnc}`, AXIOS)
-              audioUrl = r.data?.result?.downloadUrl || r.data?.result?.url || r.data?.url
-              console.log('DAVID:', audioUrl ? 'OK' : 'FAIL')
-            }catch(e){}
-          }
-
-          // SITE 4 - VREDEN API
-          if(!audioUrl){
-            try{
-              const r = await axios.get(`https://api.vreden.my.id/api/ytmp3?url=${urlEnc}`, AXIOS)
-              audioUrl = r.data?.result?.download?.url || r.data?.result?.url
+              const vid = video.videoId
+              const r = await axios.get(`https://pipedapi.kavin.rocks/streams/${vid}`, AXIOS)
+              const audios = r.data?.audioStreams || []
+              if(audios.length > 0){
+                audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+                audioUrl = audios[0].url
+              }
             }catch(e){}
           }
 
           if(!audioUrl){
-            return sock.sendMessage(chatId,{text:`❌ Toate site-urile de muzica au picat momentan.\nLink: ${video.url}`})
+            return sock.sendMessage(chatId,{text:`❌ Site-urile de muzica au picat, incearca in 5 min.\nLink: ${videoUrl}`})
           }
 
           await sock.sendMessage(chatId,{
@@ -110,7 +145,12 @@ async function startBot() {
             ptt: false
           }, {quoted:m})
 
-        }catch(err){ return sock.sendMessage(chatId,{text:'Eroare play: '+err.message}) }
+          await sock.sendMessage(chatId,{text:`✅ *Gata:* ${video.title}`})
+
+        }catch(err){ 
+          console.log('PLAY EROARE:', err.message)
+          return sock.sendMessage(chatId,{text:'Eroare play: '+err.message}) 
+        }
       }
 
       if(command==='video'){ try{ const search=await yts(q); const video=search.videos[0]; const url=q.includes('youtu')?q:video.url; const res=await axios.get(`https://api.vreden.my.id/api/ytmp4?url=${url}`, AXIOS); const vUrl=res.data?.result?.download?.url || res.data?.result?.url; if(!vUrl) return sock.sendMessage(chatId,{text:'Video blocat'}); return sock.sendMessage(chatId,{video:{url:vUrl},caption:video.title}) }catch{ return sock.sendMessage(chatId,{text:'Eroare video'}) } }
