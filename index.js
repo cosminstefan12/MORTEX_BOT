@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000
 const MY_NUMBER = "40770811929"
 let pairCodeGlobal = "Se genereaza..."
 
-app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 FINAL 100%</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
+app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 - SITE FABDL</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
 app.listen(PORT, ()=> console.log('WEB PE '+PORT))
 
 let ticTacToe = {}
@@ -49,12 +49,12 @@ async function startBot() {
       if(command==='setname'){ if(!(await isAdmin(chatId,senderId))) return; await sock.groupUpdateSubject(chatId,q); return sock.sendMessage(chatId,{text:`Nume: ${q}`}) }
       if(command==='setdesc'){ if(!(await isAdmin(chatId,senderId))) return; await sock.groupUpdateDescription(chatId,q); return sock.sendMessage(chatId,{text:'Descriere schimbata'}) }
       if(command==='admins'){ const meta=await sock.groupMetadata(chatId); const admins=meta.participants.filter(p=>p.admin); let txt=`👑 *Admini*\n`; admins.forEach(a=>txt+=`@${a.id.split('@')[0]}\n`); return sock.sendMessage(chatId,{text:txt,mentions:admins.map(a=>a.id)}) }
-      if(command==='antilink'){ if(!(await isAdmin(chatId,senderId))) return; if(!groupSettings[chatId]) groupSettings[chatId]={antilink:false}; if(q==='on'){ groupSettings[chatId].antilink=true; return sock.sendMessage(chatId,{text:'✅ Antilink ON - dau afara link-uri'}) } if(q==='off'){ groupSettings[chatId].antilink=false; return sock.sendMessage(chatId,{text:'❌ Antilink OFF'}) } return sock.sendMessage(chatId,{text:`Antilink: ${groupSettings[chatId].antilink?'ON':'OFF'}`}) }
+      if(command==='antilink'){ if(!(await isAdmin(chatId,senderId))) return; if(!groupSettings[chatId]) groupSettings[chatId]={antilink:false}; if(q==='on'){ groupSettings[chatId].antilink=true; return sock.sendMessage(chatId,{text:'✅ Antilink ON'}) } if(q==='off'){ groupSettings[chatId].antilink=false; return sock.sendMessage(chatId,{text:'❌ Antilink OFF'}) } return sock.sendMessage(chatId,{text:`Antilink: ${groupSettings[chatId].antilink?'ON':'OFF'}`}) }
       if(command==='leave'){ if(!(await isAdmin(chatId,senderId))) return; await sock.sendMessage(chatId,{text:'👋 Pa!'}); return sock.groupLeave(chatId) }
 
-      // --- MUZICA NEBANATA PE RENDER - INVIDIOUS + COBALT ---
+      // --- PLAY CU SITE-URI CU MUZICA - NEBANAT PE RENDER ---
       if(command==='play'||command==='song'||command==='muzica'){
-        if(!q) return sock.sendMessage(chatId,{text:'Scrie: .play Tzanca Uraganu - Trai v-ar familia'})
+        if(!q) return sock.sendMessage(chatId,{text:'Scrie: .play nume melodie'})
         try{
           await sock.sendMessage(chatId,{text:`🎧 *Caut:* ${q}`})
           const search = await yts(q); const video = search.videos[0]
@@ -63,43 +63,48 @@ async function startBot() {
           await sock.sendMessage(chatId,{image:{url:video.thumbnail},caption:`🎧 *${video.title}*\n⏱ ${video.timestamp}\n\n⏳ Descarc audio...`})
 
           let audioUrl = null
-          const videoId = video.videoId
 
-          // 1 - INVIDIOUS (NU E BANAT PE RENDER)
+          // SITE 1 - FABDL.COM - SITE CU MUZICA
           try{
-            const invs = [
-              `https://inv.nadeko.net/api/v1/videos/${videoId}`,
-              `https://vid.puffyan.us/api/v1/videos/${videoId}`
-            ]
-            for(const u of invs){
-              if(audioUrl) break
-              try{
-                const r = await axios.get(u, AXIOS)
-                const fmts = r.data?.adaptiveFormats || []
-                const aud = fmts.filter(f => f.type && f.type.includes('audio')).sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-                if(aud[0]?.url) audioUrl = aud[0].url
-              }catch(e){}
+            const r = await axios.get(`https://api.fabdl.com/youtube/get?url=${encodeURIComponent(video.url)}`, AXIOS)
+            if(r.data?.result?.mp3?.downloadUrl) audioUrl = r.data.result.mp3.downloadUrl
+            else if(r.data?.result?.resources) {
+              const mp3Res = r.data.result.resources.find(x => x.extension === 'mp3' || x.type === 'audio')
+              if(mp3Res) audioUrl = mp3Res.url
             }
-          }catch(e){}
+            console.log('FABDL:', audioUrl ? 'OK' : 'FAIL')
+          }catch(e){ console.log('FABDL fail', e.message) }
 
-          // 2 - COBALT co.wuk.sh (NU E BANAT)
+          // SITE 2 - CO.WUK.SH - SITE COBALT
           if(!audioUrl){
             try{
-              const r = await axios.post('https://co.wuk.sh/api/json', { url: video.url, aFormat: "mp3", isAudioOnly: true }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 20000 })
+              const r = await axios.post('https://co.wuk.sh/api/json', {
+                url: video.url, aFormat: "mp3", isAudioOnly: true
+              }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 20000 })
               if(r.data?.url) audioUrl = r.data.url
+              console.log('COBALT:', audioUrl ? 'OK' : 'FAIL')
             }catch(e){}
           }
 
-          // 3 - DAVID API BACKUP
+          // SITE 3 - DAVID API BACKUP
           if(!audioUrl){
             try{
-              const r = await axios.get(`https://api.davidcyriltech.my.id/youtube/mp3?url=${encodeURIComponent(video.url)}`, AXIOS)
-              audioUrl = r.data?.result?.downloadUrl
+              const r = await axios.get(`https://api.davidcyriltech.my.id/download/ytmp3?url=${encodeURIComponent(video.url)}`, AXIOS)
+              audioUrl = r.data?.result?.downloadUrl || r.data?.result?.url
+              console.log('DAVID:', audioUrl ? 'OK' : 'FAIL')
+            }catch(e){}
+          }
+
+          // SITE 4 - VREDEN API BACKUP
+          if(!audioUrl){
+            try{
+              const r = await axios.get(`https://api.vreden.my.id/api/ytmp3?url=${encodeURIComponent(video.url)}`, AXIOS)
+              audioUrl = r.data?.result?.download?.url || r.data?.result?.url
             }catch(e){}
           }
 
           if(!audioUrl){
-            return sock.sendMessage(chatId,{text:`❌ Nu am putut lua audio-ul momentan.\nLink: ${video.url}`})
+            return sock.sendMessage(chatId,{text:`❌ Nu am putut lua audio-ul momentan.\nLink: ${video.url}\nIncearca din nou.`})
           }
 
           await sock.sendMessage(chatId,{
@@ -108,8 +113,6 @@ async function startBot() {
             fileName: `${video.title}.mp3`,
             ptt: false
           }, {quoted:m})
-
-          return sock.sendMessage(chatId,{text:`✅ Gata - ${video.title}`})
 
         }catch(err){ return sock.sendMessage(chatId,{text:'Eroare play: '+err.message}) }
       }
@@ -137,7 +140,6 @@ async function startBot() {
       if(command==='ppt'){ const o=['piatra','hartie','foarfeca']; const bot=o[Math.floor(Math.random()*3)]; const user=args[0]?.toLowerCase(); if(!o.includes(user)) return sock.sendMessage(chatId,{text:'.ppt piatra/hartie/foarfeca'}); let rez=user===bot?'Egal':(user==='piatra'&&bot==='foarfeca'||user==='hartie'&&bot==='piatra'||user==='foarfeca'&&bot==='hartie')?'Ai castigat':'Ai pierdut'; return sock.sendMessage(chatId,{text:`Tu:${user} Bot:${bot} - ${rez}`}) }
       if(command==='xox'){ if(!ticTacToe[chatId]||q==='reset') ticTacToe[chatId]=['1','2','3','4','5','6','7','8','9']; const pos=parseInt(args[0])-1; if(!isNaN(pos)&&pos>=0&&pos<=8){ if(ticTacToe[chatId][pos]!=='❌'&&ticTacToe[chatId][pos]!=='⭕'){ ticTacToe[chatId][pos]='❌'; let e=ticTacToe[chatId].map((v,i)=>v!=='❌'&&v!=='⭕'?i:null).filter(v=>v!==null); if(e.length>0) ticTacToe[chatId][e[Math.floor(Math.random()*e.length)]]='⭕' } } let b=ticTacToe[chatId]; return sock.sendMessage(chatId,{text:`${b[0]}|${b[1]}|${b[2]}\n${b[3]}|${b[4]}|${b[5]}\n${b[6]}|${b[7]}|${b[8]}\n.xox 1-9`}) }
 
-      // --- MENIUL TAU ORIGINAL EXACT ---
       if(command==='menu'||command==='meniu'||command==='help'){
         return sock.sendMessage(chatId,{text:
 `🤖 *BMW-XMD V5 MENU*
