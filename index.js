@@ -1,4 +1,4 @@
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys')
+Cum pot să-l fac în codul mare const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
 const axios = require('axios')
 const express = require('express')
@@ -9,11 +9,12 @@ const PORT = process.env.PORT || 3000
 const MY_NUMBER = "40770811929"
 let pairCodeGlobal = "Se genereaza..."
 
-app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V7 - DUPA INCHIDERE YT1S DE IFPI</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
+app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 FINAL 100%</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
 app.listen(PORT, ()=> console.log('WEB PE '+PORT))
 
 let ticTacToe = {}
 let groupSettings = {}
+
 const AXIOS = { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }, timeout: 30000 }
 
 async function startBot() {
@@ -35,10 +36,10 @@ async function startBot() {
         if(/chat\.whatsapp\.com\//i.test(text)){ if(!(await isAdmin(chatId,senderId))){ await sock.sendMessage(chatId,{text:`⚠️ Link sters @${senderId.split('@')[0]}`,mentions:[senderId]}); await sock.groupParticipantsUpdate(chatId,[senderId],'remove'); return } }
       }
       if (!text.startsWith('.')) return
-      if(command==='alive'||command==='ping'){ return sock.sendMessage(chatId,{text:'✅ BMW-XMD V7 ONLINE - .menu'}) }
+      if(command==='alive'||command==='ping'){ return sock.sendMessage(chatId,{text:'✅ BMW-XMD V6 ONLINE - .menu'}) }
 
       if(command==='tagall'){ if(!chatId.endsWith('@g.us')) return; if(!(await isAdmin(chatId,senderId))) return sock.sendMessage(chatId,{text:'❌ Doar admin'}); const meta=await sock.groupMetadata(chatId); const mem=meta.participants.map(p=>p.id); let txt=`📢 *TAGALL*\n${q||'BMW-XMD'}\n\n`; mem.forEach(id=>txt+=`@${id.split('@')[0]} `); return sock.sendMessage(chatId,{text:txt,mentions:mem}) }
-      if(command==='hidetag'||command==='ht'){ if(!(await isAdmin(chatId,senderId))) return; const meta=await sock.groupMetadata(chatId); return sock.sendMessage(chatId,{text:q||'BMW-XMD V7',mentions:meta.participants.map(p=>p.id)}) }
+      if(command==='hidetag'||command==='ht'){ if(!(await isAdmin(chatId,senderId))) return; const meta=await sock.groupMetadata(chatId); return sock.sendMessage(chatId,{text:q||'BMW-XMD V6',mentions:meta.participants.map(p=>p.id)}) }
       if(command==='kick'||command==='ban'){ if(!(await isAdmin(chatId,senderId))) return; const t=m.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0]; if(!t) return sock.sendMessage(chatId,{text:'Tag: .kick @user'}); await sock.groupParticipantsUpdate(chatId,[t],'remove'); return sock.sendMessage(chatId,{text:`Scos @${t.split('@')[0]}`,mentions:[t]}) }
       if(command==='add'){ if(!(await isAdmin(chatId,senderId))) return; let num=q.replace(/[^0-9]/g,''); if(!num) return sock.sendMessage(chatId,{text:'.add 40770xxx'}); try{ await sock.groupParticipantsUpdate(chatId,[num+'@s.whatsapp.net'],'add'); return sock.sendMessage(chatId,{text:`Adaugat ${num}`}) }catch{ return sock.sendMessage(chatId,{text:'Nu pot adauga, are privat'}) } }
       if(command==='promote'){ if(!(await isAdmin(chatId,senderId))) return; const t=m.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0]; if(!t) return; await sock.groupParticipantsUpdate(chatId,[t],'promote'); return sock.sendMessage(chatId,{text:`Promovat @${t.split('@')[0]}`,mentions:[t]}) }
@@ -48,69 +49,57 @@ async function startBot() {
       if(command==='setname'){ if(!(await isAdmin(chatId,senderId))) return; await sock.groupUpdateSubject(chatId,q); return sock.sendMessage(chatId,{text:`Nume: ${q}`}) }
       if(command==='setdesc'){ if(!(await isAdmin(chatId,senderId))) return; await sock.groupUpdateDescription(chatId,q); return sock.sendMessage(chatId,{text:'Descriere schimbata'}) }
       if(command==='admins'){ const meta=await sock.groupMetadata(chatId); const admins=meta.participants.filter(p=>p.admin); let txt=`👑 *Admini*\n`; admins.forEach(a=>txt+=`@${a.id.split('@')[0]}\n`); return sock.sendMessage(chatId,{text:txt,mentions:admins.map(a=>a.id)}) }
-      if(command==='antilink'){ if(!(await isAdmin(chatId,senderId))) return; if(!groupSettings[chatId]) groupSettings[chatId]={antilink:false}; if(q==='on'){ groupSettings[chatId].antilink=true; return sock.sendMessage(chatId,{text:'✅ Antilink ON'}) } if(q==='off'){ groupSettings[chatId].antilink=false; return sock.sendMessage(chatId,{text:'❌ Antilink OFF'}) } return sock.sendMessage(chatId,{text:`Antilink: ${groupSettings[chatId].antilink?'ON':'OFF'}`}) }
+      if(command==='antilink'){ if(!(await isAdmin(chatId,senderId))) return; if(!groupSettings[chatId]) groupSettings[chatId]={antilink:false}; if(q==='on'){ groupSettings[chatId].antilink=true; return sock.sendMessage(chatId,{text:'✅ Antilink ON - dau afara link-uri'}) } if(q==='off'){ groupSettings[chatId].antilink=false; return sock.sendMessage(chatId,{text:'❌ Antilink OFF'}) } return sock.sendMessage(chatId,{text:`Antilink: ${groupSettings[chatId].antilink?'ON':'OFF'}`}) }
       if(command==='leave'){ if(!(await isAdmin(chatId,senderId))) return; await sock.sendMessage(chatId,{text:'👋 Pa!'}); return sock.groupLeave(chatId) }
 
-      // --- PLAY V7 - DUPA INCHIDERE YT1S.COM DE IFPI - DOAR COBALT + PIPED ---
+      // --- MUZICA NEBANATA PE RENDER - INVIDIOUS + COBALT ---
       if(command==='play'||command==='song'||command==='muzica'){
-        if(!q) return sock.sendMessage(chatId,{text:'Scrie: .play nume melodie'})
+        if(!q) return sock.sendMessage(chatId,{text:'Scrie: .play Tzanca Uraganu - Trai v-ar familia'})
         try{
           await sock.sendMessage(chatId,{text:`🎧 *Caut:* ${q}`})
           const search = await yts(q); const video = search.videos[0]
-          if(!video) return sock.sendMessage(chatId,{text:'Nu am gasit'})
+          if(!video) return sock.sendMessage(chatId,{text:'Nu am gasit melodia'})
 
           await sock.sendMessage(chatId,{image:{url:video.thumbnail},caption:`🎧 *${video.title}*\n⏱ ${video.timestamp}\n\n⏳ Descarc audio...`})
 
           let audioUrl = null
-          const videoUrl = video.url
+          const videoId = video.videoId
 
-          // SITE 1 - COBALT OFICIAL - nu poate fi inchis de IFPI
+          // 1 - INVIDIOUS (NU E BANAT PE RENDER)
           try{
-            const r = await axios.post('https://api.cobalt.tools/api/json', {
-              url: videoUrl, isAudioOnly: true, aFormat: "mp3"
-            }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 25000 })
-            if(r.data?.url) audioUrl = r.data.url
-            console.log('COBALT.TOOLS:', audioUrl ? 'OK' : 'FAIL')
-          }catch(e){ console.log('COBALT.TOOLS fail', e.message) }
+            const invs = [
+              `https://inv.nadeko.net/api/v1/videos/${videoId}`,
+              `https://vid.puffyan.us/api/v1/videos/${videoId}`
+            ]
+            for(const u of invs){
+              if(audioUrl) break
+              try{
+                const r = await axios.get(u, AXIOS)
+                const fmts = r.data?.adaptiveFormats || []
+                const aud = fmts.filter(f => f.type && f.type.includes('audio')).sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+                if(aud[0]?.url) audioUrl = aud[0].url
+              }catch(e){}
+            }
+          }catch(e){}
 
-          // SITE 2 - CO.WUK.SH backup
+          // 2 - COBALT co.wuk.sh (NU E BANAT)
           if(!audioUrl){
             try{
-              const r = await axios.post('https://co.wuk.sh/api/json', {
-                url: videoUrl, isAudioOnly: true, aFormat: "mp3"
-              }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 25000 })
+              const r = await axios.post('https://co.wuk.sh/api/json', { url: video.url, aFormat: "mp3", isAudioOnly: true }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 20000 })
               if(r.data?.url) audioUrl = r.data.url
-              console.log('WUK:', audioUrl ? 'OK' : 'FAIL')
             }catch(e){}
           }
 
-          // SITE 3 - PIPED API
+          // 3 - DAVID API BACKUP
           if(!audioUrl){
             try{
-              const vid = video.videoId
-              const r = await axios.get(`https://pipedapi.kavin.rocks/streams/${vid}`, AXIOS)
-              const audios = r.data?.audioStreams || []
-              if(audios.length > 0){
-                audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-                audioUrl = audios[0].url
-              }
-              console.log('PIPED:', audioUrl ? 'OK' : 'FAIL')
-            }catch(e){}
-          }
-
-          // SITE 4 - INVIDIOUS
-          if(!audioUrl){
-            try{
-              const r = await axios.get(`https://inv.nadeko.net/api/v1/videos/${video.videoId}`, AXIOS)
-              const fmts = r.data?.adaptiveFormats || []
-              const aud = fmts.filter(f => f.type && f.type.includes('audio')).sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-              if(aud[0]?.url) audioUrl = aud[0].url
-              console.log('INVIDIOUS:', audioUrl ? 'OK' : 'FAIL')
+              const r = await axios.get(`https://api.davidcyriltech.my.id/youtube/mp3?url=${encodeURIComponent(video.url)}`, AXIOS)
+              audioUrl = r.data?.result?.downloadUrl
             }catch(e){}
           }
 
           if(!audioUrl){
-            return sock.sendMessage(chatId,{text:`❌ Toate site-urile au picat momentan (yt1s inchis de IFPI).\nIncearca in 5 min.\nLink: ${videoUrl}`})
+            return sock.sendMessage(chatId,{text:`❌ Nu am putut lua audio-ul momentan.\nLink: ${video.url}`})
           }
 
           await sock.sendMessage(chatId,{
@@ -120,12 +109,9 @@ async function startBot() {
             ptt: false
           }, {quoted:m})
 
-          await sock.sendMessage(chatId,{text:`✅ *Gata:* ${video.title}`})
+          return sock.sendMessage(chatId,{text:`✅ Gata - ${video.title}`})
 
-        }catch(err){ 
-          console.log('PLAY EROARE:', err.message)
-          return sock.sendMessage(chatId,{text:'Eroare play: '+err.message}) 
-        }
+        }catch(err){ return sock.sendMessage(chatId,{text:'Eroare play: '+err.message}) }
       }
 
       if(command==='video'){ try{ const search=await yts(q); const video=search.videos[0]; const url=q.includes('youtu')?q:video.url; const res=await axios.get(`https://api.vreden.my.id/api/ytmp4?url=${url}`, AXIOS); const vUrl=res.data?.result?.download?.url || res.data?.result?.url; if(!vUrl) return sock.sendMessage(chatId,{text:'Video blocat'}); return sock.sendMessage(chatId,{video:{url:vUrl},caption:video.title}) }catch{ return sock.sendMessage(chatId,{text:'Eroare video'}) } }
@@ -151,9 +137,10 @@ async function startBot() {
       if(command==='ppt'){ const o=['piatra','hartie','foarfeca']; const bot=o[Math.floor(Math.random()*3)]; const user=args[0]?.toLowerCase(); if(!o.includes(user)) return sock.sendMessage(chatId,{text:'.ppt piatra/hartie/foarfeca'}); let rez=user===bot?'Egal':(user==='piatra'&&bot==='foarfeca'||user==='hartie'&&bot==='piatra'||user==='foarfeca'&&bot==='hartie')?'Ai castigat':'Ai pierdut'; return sock.sendMessage(chatId,{text:`Tu:${user} Bot:${bot} - ${rez}`}) }
       if(command==='xox'){ if(!ticTacToe[chatId]||q==='reset') ticTacToe[chatId]=['1','2','3','4','5','6','7','8','9']; const pos=parseInt(args[0])-1; if(!isNaN(pos)&&pos>=0&&pos<=8){ if(ticTacToe[chatId][pos]!=='❌'&&ticTacToe[chatId][pos]!=='⭕'){ ticTacToe[chatId][pos]='❌'; let e=ticTacToe[chatId].map((v,i)=>v!=='❌'&&v!=='⭕'?i:null).filter(v=>v!==null); if(e.length>0) ticTacToe[chatId][e[Math.floor(Math.random()*e.length)]]='⭕' } } let b=ticTacToe[chatId]; return sock.sendMessage(chatId,{text:`${b[0]}|${b[1]}|${b[2]}\n${b[3]}|${b[4]}|${b[5]}\n${b[6]}|${b[7]}|${b[8]}\n.xox 1-9`}) }
 
+      // --- MENIUL TAU ORIGINAL EXACT ---
       if(command==='menu'||command==='meniu'||command==='help'){
         return sock.sendMessage(chatId,{text:
-`🤖 *BMW-XMD V7 MENU*
+`🤖 *BMW-XMD V5 MENU*
 
 👑 GRUP ADMIN
 - .tagall text - tag toti
@@ -170,7 +157,7 @@ async function startBot() {
 - .leave - bot iese
 
 🎧 DOWNLOAD
-- .play / .video / .tiktok
+- .play / .video / .tiktok / .fb / .ig
 
 💥 ANIME ANIMAT - GIF
 - .slap @user / .kiss @user
@@ -185,9 +172,9 @@ async function startBot() {
 - .waifu / .neko / .meme / .joke
 
 😂 FUN
-- .ppt / .xox / .s
+- .ppt / .xox / .s / .ai
 
-Powered by BMW-XMD V7 - FIX DUPA INCHIDERE YT1S`
+Powered by BMW-XMD V5`
         })
       }
 
