@@ -1,4 +1,4 @@
-Cum pot să-l fac în codul mare const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys')
+const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
 const axios = require('axios')
 const express = require('express')
