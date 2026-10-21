@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000
 const MY_NUMBER = "40770811929"
 let pairCodeGlobal = "Se genereaza..."
 
-app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V6 FINAL FIX YT1S</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
+app.get('/', (req,res)=> res.send(`<h1>BMW-XMD V7 - DUPA INCHIDERE YT1S DE IFPI</h1><h1 style="background:black;color:lime;padding:30px">COD: ${pairCodeGlobal}</h1>`))
 app.listen(PORT, ()=> console.log('WEB PE '+PORT))
 
 let ticTacToe = {}
@@ -35,10 +35,10 @@ async function startBot() {
         if(/chat\.whatsapp\.com\//i.test(text)){ if(!(await isAdmin(chatId,senderId))){ await sock.sendMessage(chatId,{text:`⚠️ Link sters @${senderId.split('@')[0]}`,mentions:[senderId]}); await sock.groupParticipantsUpdate(chatId,[senderId],'remove'); return } }
       }
       if (!text.startsWith('.')) return
-      if(command==='alive'||command==='ping'){ return sock.sendMessage(chatId,{text:'✅ BMW-XMD V6 ONLINE - .menu'}) }
+      if(command==='alive'||command==='ping'){ return sock.sendMessage(chatId,{text:'✅ BMW-XMD V7 ONLINE - .menu'}) }
 
       if(command==='tagall'){ if(!chatId.endsWith('@g.us')) return; if(!(await isAdmin(chatId,senderId))) return sock.sendMessage(chatId,{text:'❌ Doar admin'}); const meta=await sock.groupMetadata(chatId); const mem=meta.participants.map(p=>p.id); let txt=`📢 *TAGALL*\n${q||'BMW-XMD'}\n\n`; mem.forEach(id=>txt+=`@${id.split('@')[0]} `); return sock.sendMessage(chatId,{text:txt,mentions:mem}) }
-      if(command==='hidetag'||command==='ht'){ if(!(await isAdmin(chatId,senderId))) return; const meta=await sock.groupMetadata(chatId); return sock.sendMessage(chatId,{text:q||'BMW-XMD V6',mentions:meta.participants.map(p=>p.id)}) }
+      if(command==='hidetag'||command==='ht'){ if(!(await isAdmin(chatId,senderId))) return; const meta=await sock.groupMetadata(chatId); return sock.sendMessage(chatId,{text:q||'BMW-XMD V7',mentions:meta.participants.map(p=>p.id)}) }
       if(command==='kick'||command==='ban'){ if(!(await isAdmin(chatId,senderId))) return; const t=m.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0]; if(!t) return sock.sendMessage(chatId,{text:'Tag: .kick @user'}); await sock.groupParticipantsUpdate(chatId,[t],'remove'); return sock.sendMessage(chatId,{text:`Scos @${t.split('@')[0]}`,mentions:[t]}) }
       if(command==='add'){ if(!(await isAdmin(chatId,senderId))) return; let num=q.replace(/[^0-9]/g,''); if(!num) return sock.sendMessage(chatId,{text:'.add 40770xxx'}); try{ await sock.groupParticipantsUpdate(chatId,[num+'@s.whatsapp.net'],'add'); return sock.sendMessage(chatId,{text:`Adaugat ${num}`}) }catch{ return sock.sendMessage(chatId,{text:'Nu pot adauga, are privat'}) } }
       if(command==='promote'){ if(!(await isAdmin(chatId,senderId))) return; const t=m.message.extendedTextMessage?.contextInfo?.mentionedJid?.[0]; if(!t) return; await sock.groupParticipantsUpdate(chatId,[t],'promote'); return sock.sendMessage(chatId,{text:`Promovat @${t.split('@')[0]}`,mentions:[t]}) }
@@ -51,7 +51,7 @@ async function startBot() {
       if(command==='antilink'){ if(!(await isAdmin(chatId,senderId))) return; if(!groupSettings[chatId]) groupSettings[chatId]={antilink:false}; if(q==='on'){ groupSettings[chatId].antilink=true; return sock.sendMessage(chatId,{text:'✅ Antilink ON'}) } if(q==='off'){ groupSettings[chatId].antilink=false; return sock.sendMessage(chatId,{text:'❌ Antilink OFF'}) } return sock.sendMessage(chatId,{text:`Antilink: ${groupSettings[chatId].antilink?'ON':'OFF'}`}) }
       if(command==='leave'){ if(!(await isAdmin(chatId,senderId))) return; await sock.sendMessage(chatId,{text:'👋 Pa!'}); return sock.groupLeave(chatId) }
 
-      // --- PLAY FINAL FIX - YT1S.COM - SITE CU MUZICA CARE MERGE PE RENDER ---
+      // --- PLAY V7 - DUPA INCHIDERE YT1S.COM DE IFPI - DOAR COBALT + PIPED ---
       if(command==='play'||command==='song'||command==='muzica'){
         if(!q) return sock.sendMessage(chatId,{text:'Scrie: .play nume melodie'})
         try{
@@ -64,60 +64,23 @@ async function startBot() {
           let audioUrl = null
           const videoUrl = video.url
 
-          // SITE 1 - YT1S.COM - ASTA MERGE ACUM, NU E API MIC
+          // SITE 1 - COBALT OFICIAL - nu poate fi inchis de IFPI
           try{
-            const form1 = new URLSearchParams()
-            form1.append('q', videoUrl)
-            form1.append('vt', 'mp3')
+            const r = await axios.post('https://api.cobalt.tools/api/json', {
+              url: videoUrl, isAudioOnly: true, aFormat: "mp3"
+            }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 25000 })
+            if(r.data?.url) audioUrl = r.data.url
+            console.log('COBALT.TOOLS:', audioUrl ? 'OK' : 'FAIL')
+          }catch(e){ console.log('COBALT.TOOLS fail', e.message) }
 
-            const s1 = await axios.post('https://yt1s.com/api/ajaxSearch', form1.toString(), {
-              headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                'Origin': 'https://yt1s.com',
-                'Referer': 'https://yt1s.com/',
-                'X-Requested-With': 'XMLHttpRequest'
-              },
-              timeout: 25000
-            })
-
-            let k = null
-            if(s1.data?.links?.mp3){
-              const mp3Links = s1.data.links.mp3
-              k = mp3Links['mp3128']?.k || mp3Links['128']?.k || mp3Links['mp3']?.k || Object.values(mp3Links)[0]?.k
-            }
-
-            if(s1.data?.vid && k){
-              const form2 = new URLSearchParams()
-              form2.append('vid', s1.data.vid)
-              form2.append('k', k)
-
-              const s2 = await axios.post('https://yt1s.com/api/ajaxConvert', form2.toString(), {
-                headers: { 
-                  'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                  'Origin': 'https://yt1s.com',
-                  'Referer': 'https://yt1s.com/',
-                  'X-Requested-With': 'XMLHttpRequest'
-                },
-                timeout: 25000
-              })
-              
-              if(s2.data?.dlink){
-                audioUrl = s2.data.dlink
-              }
-            }
-            console.log('YT1S:', audioUrl ? 'OK' : 'FAIL')
-          }catch(e){ console.log('YT1S fail', e.message) }
-
-          // SITE 2 - COBALT CO.WUK.SH
+          // SITE 2 - CO.WUK.SH backup
           if(!audioUrl){
             try{
               const r = await axios.post('https://co.wuk.sh/api/json', {
-                url: videoUrl, aFormat: "mp3", isAudioOnly: true
-              }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 20000 })
+                url: videoUrl, isAudioOnly: true, aFormat: "mp3"
+              }, { headers: { 'Accept':'application/json', 'Content-Type':'application/json' }, timeout: 25000 })
               if(r.data?.url) audioUrl = r.data.url
-              console.log('COBALT:', audioUrl ? 'OK' : 'FAIL')
+              console.log('WUK:', audioUrl ? 'OK' : 'FAIL')
             }catch(e){}
           }
 
@@ -131,11 +94,23 @@ async function startBot() {
                 audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
                 audioUrl = audios[0].url
               }
+              console.log('PIPED:', audioUrl ? 'OK' : 'FAIL')
+            }catch(e){}
+          }
+
+          // SITE 4 - INVIDIOUS
+          if(!audioUrl){
+            try{
+              const r = await axios.get(`https://inv.nadeko.net/api/v1/videos/${video.videoId}`, AXIOS)
+              const fmts = r.data?.adaptiveFormats || []
+              const aud = fmts.filter(f => f.type && f.type.includes('audio')).sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+              if(aud[0]?.url) audioUrl = aud[0].url
+              console.log('INVIDIOUS:', audioUrl ? 'OK' : 'FAIL')
             }catch(e){}
           }
 
           if(!audioUrl){
-            return sock.sendMessage(chatId,{text:`❌ Site-urile de muzica au picat, incearca in 5 min.\nLink: ${videoUrl}`})
+            return sock.sendMessage(chatId,{text:`❌ Toate site-urile au picat momentan (yt1s inchis de IFPI).\nIncearca in 5 min.\nLink: ${videoUrl}`})
           }
 
           await sock.sendMessage(chatId,{
@@ -178,7 +153,7 @@ async function startBot() {
 
       if(command==='menu'||command==='meniu'||command==='help'){
         return sock.sendMessage(chatId,{text:
-`🤖 *BMW-XMD V5 MENU*
+`🤖 *BMW-XMD V7 MENU*
 
 👑 GRUP ADMIN
 - .tagall text - tag toti
@@ -195,7 +170,7 @@ async function startBot() {
 - .leave - bot iese
 
 🎧 DOWNLOAD
-- .play / .video / .tiktok / .fb / .ig
+- .play / .video / .tiktok
 
 💥 ANIME ANIMAT - GIF
 - .slap @user / .kiss @user
@@ -210,9 +185,9 @@ async function startBot() {
 - .waifu / .neko / .meme / .joke
 
 😂 FUN
-- .ppt / .xox / .s / .ai
+- .ppt / .xox / .s
 
-Powered by BMW-XMD V5`
+Powered by BMW-XMD V7 - FIX DUPA INCHIDERE YT1S`
         })
       }
 
